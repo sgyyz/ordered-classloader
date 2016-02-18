@@ -9,7 +9,6 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.order.classloader.OrderedClassLoader;
@@ -20,7 +19,6 @@ public class OrderedClassLoaderTest {
     private static final String TARGET_METHOD = "test";
 
     @Test
-    @Ignore
     public void testParentFirst() {
         OrderedClassLoader orderedClassLoader = new OrderedClassLoader(true);
         for (int i = 1; i <= 3; i++) {
@@ -39,7 +37,6 @@ public class OrderedClassLoaderTest {
     }
 
     @Test
-    @Ignore
     public void testChildFirst() {
         OrderedClassLoader orderedClassLoader = new OrderedClassLoader(false);
         for (int i = 1; i <= 3; i++) {

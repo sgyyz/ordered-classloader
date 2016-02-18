@@ -70,7 +70,7 @@ public class OrderedClassLoaderTest {
         try {
             orderedClassLoader.reload();
             
-            File firstFile = new File(preapreFile(1).toURI());
+            File firstFile = new File(preapreFile(2).toURI());
             File fourthFile = new File(getNewFilePath(String.format(TARGET_FILE_PATTERN, 4)));
             if(fourthFile.exists()) {
                 fourthFile.delete();
@@ -90,7 +90,7 @@ public class OrderedClassLoaderTest {
             String actualResult = runMethod(orderedClassLoader);
             
             // recovery jar files.
-            File recoveryFile = new File(getNewFilePath(String.format(TARGET_FILE_PATTERN, 1)));
+            File recoveryFile = new File(getNewFilePath(String.format(TARGET_FILE_PATTERN, 2)));
             if(!recoveryFile.exists()) {
                 Files.copy(fourthFile.toPath(), recoveryFile.toPath());
             }
@@ -98,8 +98,8 @@ public class OrderedClassLoaderTest {
             
             // assert the result
             Assert.assertEquals(
-                    "This should return " + String.format(TARGET_FILE_PATTERN, 1) + "'s test method return.",
-                    "This is test-classloader-0.0.1-SNAPSHOT-1.jar", actualResult);
+                    "This should return " + String.format(TARGET_FILE_PATTERN, 2) + "'s test method return.",
+                    "This is test-classloader-0.0.1-SNAPSHOT-2.jar", actualResult);
             
         } catch (Exception e) {
             e.printStackTrace();

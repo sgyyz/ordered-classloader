@@ -1,6 +1,27 @@
-.classpath
-.DS_Store
-**/.DS_Store
 target/
+!.mvn/wrapper/maven-wrapper.jar
+*.swp
+pom.xml.versionsBackup
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
 .project
-.settings/
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/

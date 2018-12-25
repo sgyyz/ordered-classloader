@@ -56,9 +56,9 @@ public class OrderedClassLoader {
 	}
 
 	/**
-	 * reload the attached URLClassLoader. <br/>
+	 * reload the attached URLClassLoader.
 	 * firstly release the attachedURLClassLoader if it not null, just keep the
-	 * origin parent class loader without reference. <br/>
+	 * origin parent class loader without reference.
 	 * secondly, attach the new class loader to origin parent class loader by
 	 * order.
 	 * 

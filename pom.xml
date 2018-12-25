@@ -5,7 +5,7 @@
 
   <groupId>com.github.sgyyz</groupId>
   <artifactId>ordered-classloader</artifactId>
-  <version>0.3.4-SNAPSHOT</version>
+  <version>0.3.4</version>
   <packaging>jar</packaging>
 
   <name>ordered-classloader</name>

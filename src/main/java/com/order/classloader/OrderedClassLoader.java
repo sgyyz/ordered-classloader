@@ -40,7 +40,7 @@ public class OrderedClassLoader {
 	/**
 	 * add URLs to list.
 	 * 
-	 * @param urls
+	 * @param urls jar urls
 	 */
 	public void addURL(URL... urls) {
 		this.urls.addAll(Arrays.asList(urls));
@@ -49,7 +49,7 @@ public class OrderedClassLoader {
 	/**
 	 * remove the URL for list, once delete the jar file.
 	 * 
-	 * @param removeURL
+	 * @param removeURL jar urls need to remove
 	 */
 	public void removeURL(URL removeURL) {
 		urls.remove(removeURL);
@@ -63,7 +63,7 @@ public class OrderedClassLoader {
 	 * order.
 	 * 
 	 * @return URLClassLoader loaded new class loader
-	 * @throws IOException
+	 * @throws IOException normal io exception
 	 */
 	public URLClassLoader reload() throws IOException {
 		// release previously class loader

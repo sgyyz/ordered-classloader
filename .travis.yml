@@ -2,20 +2,24 @@ language: java
 jdk:
   - openjdk8
 
+## Export GPG details
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+
 install:
-  mvn --settings .setttings.xml clean install -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+  mvn --settings .setttings.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 
+## Build and release to maven central
 script:
-  mvn --settings .setttings.xml clean deploy -DskipTests=true -B -U -Prelease
+  mvn --settings .setttings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
 
+## Get the project version
 before_deploy:
   - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
   - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
-  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
-  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
-  - sed -i -- "s/\${env.SONATYPE_PASSWORD}/$SONATYPE_PASSWORD/g" .settings.xml
-  - mvn --settings .settings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
 
+## Create release in Github
 deploy:
   provider: releases
   api_key:
@@ -24,8 +28,12 @@ deploy:
     - "target/ordered-classloader-$project_version.jar"
     - "target/ordered-classloader-$project_version-javadoc.jar"
     - "target/ordered-classloader-$project_version-sources.jar"
-
+  skip_cleanup: true
   on:
     tags: true
     repo: sgyyz/ordered-classloader
   name: $project_version
+
+cache:
+  directories:
+    - ~/.m2/repository

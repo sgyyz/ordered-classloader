@@ -1,22 +1,39 @@
 language: java
-jdk: openjdk8
-branches: 
-only:
-- master
+jdk:
+  - openjdk8
+
+## Export GPG details
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+
+install:
+  mvn --settings .setttings.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+
+## Build and release to maven central
+script:
+  mvn --settings .setttings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
+
+## Get the project version
+before_deploy:
+  - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
+  - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
+
+## Create release in Github
+deploy:
+  provider: releases
+  api_key:
+    secure: im6enPaCVQ91auK17R1+hDiA2rhjDQEDZvv2wfJznqanJm4veuINK1Ak3TMlVJVzz2TixmEYtGTtGAOL/IwbylhjZKfpJJPeptZ9ztsKHXpdAdnAaPpnVgGAaW4FXksmxzlqRyB4xfY48MFpsHEzuhTYONvPTvvlJt4uUResR65g1h8/ypXsJMSHpzegvoVsYRevYfrJq1OUgI6UIKXtb9txIbGpwrN64r/gpWz8k6se2L9WXFP8q3wHp+RcDCa2RnWxsk/Q8fxcJrrxLt9JAnu+VYbiLRtNjNPrE/fcw7rCkC25deVWY+P+nzxI6P5pIZYE7mue0G5B6i5yZux+ZyWxMcdiB6J1G1MFiBYXVJUN9oqX4G9Q4soWDovzq+Z3R727fA1wBeMd1B1/DSBPen9GM4gXsZXGI910SUDDRfUbfhytDesu+k2F4WoJGjIjoAEE4B24uCYNMPqqFpUxXIGLLFQ6iB5tS0pVoqFmaWOBJkwTVK3w8tpMYlNxFUsc8iN+ayT5tVxGrYWtZhA740Kegu2sv5KZAYReG8IiP8V+SXB4meW2de11PvOji0VqnI6U8IGQ28JkAJPpV/DZUtrFn7qnDijioGnVGDnrW4UYbXMQvjOc+3WIMB4ooUgKI16rIxyiVpoGdhTeN8W+UjMwUJO0CGqz4g8/OP+iQ54=
+  file:
+    - "target/ordered-classloader-$project_version.jar"
+    - "target/ordered-classloader-$project_version-javadoc.jar"
+    - "target/ordered-classloader-$project_version-sources.jar"
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: sgyyz/ordered-classloader
+  name: $project_version
+
 cache:
   directories:
-  - "$HOME/.m2"
-after_success:
-- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/pubring.gpg.enc
-  -out $GPG_DIR/pubring.gpg -d
-- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/secring.gpg.enc
-  -out $GPG_DIR/secring.gpg -d
-- "$GPG_DIR/publish.sh"
-env:
-  global:
-  - GPG_DIR="`pwd`/deploy"
-  - secure: JrQYcb1JqyaeOq08U2zMTpDauudIqCK2RwSx5wPfMQI48NNLd+NhuNT/A1YhxiE96GrKdAlKsSdPQ4UdFCHHrePXksDIM1WZ7OnTqFIgU34ErBs3kLwINeaEmB63a4/N2poN0FfW93a5bt/kGr4BHcATc4mt0P+7+OeP0iMrLbSZiLjXgIjGscVi27A/gHuqjxrA6abOAVE1+3mIz3Wulwvnpcl3h91vg3EFZPrAPWRTVIl0kIHIGKO+dKkkAnCQEa4CnBv41jhC8GyU1lJaXBUcIH2ZBcKLr6N0l0SxYnEpeEJ4TmdBI+anBUHxW/HJRMP0gSpcVVIX27tOcv6OLiusY/RbMp40LEJnqONlNJkaCK/cLeE348XGqXYPOj6eu94dhho2v76MVsLnBELSmyS0Gtb1xLrT7mwBzD0BuIfIx10PY5lxeV/iMQiH7fEOaiuftpiFM5na+LZo1iy9551X1CvP2JaMLpg5A4fZ0urGthE9FJQk8FBJGj2XYeuAFAdkVVc1+4PRuNLm6aZo9MYhaN0lQHRcimHAR9DGKNm64WTFr8lOrzFcS7B66KP6Kb3YaAW8DAd/9vSGHZZgcVRexJ7MYyjwi5tYi9VmiT8TCCPCpmcFpRpENyVUJEhfDljhmzqgJAN72kXNlSY5VELRVDpcZEYDEkM9osw4sO8=
-  - secure: sTr9x1NHk/uJ0y7X1Jqgpc1STvHG1GzCrIAT3enNsQsWsM1+OGzqRyP+c0Qh5fuL1tPGeQV5VIgUKbkUf197V6jN0AINDNRaoDXO14xpA6h6twVlsTptjAtFuplMgmUA79Wex2Du5TFnO2DhmhDDXNClzM5AHM6m2KVyQquPlV2avd6G72sakDtK4kxhLFBjbae/0sUC3crME2cj/edunyonrSmNYFDCIqdjI3BuiY+M1nxe5vrRFRrLQelIRQ+/a8cunsK/J9h3+fap4VLuUzoJ2g1nVKW1XAX3EyglyGCOk26kNdBuuThBRHxnqJxwuBsFOvRBKmBYpL72/mP8w/c/zJB9gPi1CWXYgmDrmbozdqs1h6ApPVzIA0L5mHxeKllzq1vSSIZdrcOuA8UYTlxkCvR9llq7pS052IpXvm6N5KjfxYZ4qcffta3//HWhMPoso+eNvn0ReA12HXBnYm036A3i/2ouf5lD05yLlt/DXORtqZIiS1Y8DdGxpk7AXbzRiGLf858elSJd0loISPzOUXVaHNHg7j2Jl9u1P7R/wOApGP3l4y+p39EzbROS0pSyaBGzBjMoLk9LxyQYELhJ0/tW5g+GJl1GTewtXngQWYCTxsalJkTZN9XybVOMLFX9xF1hyLBK2B46vea2Re3V+OKzUAigEn0oEv7MvAk=
-  - secure: eLctK+wvziaABINvfh9tgkIoM9L+LsfVzHIeAiqppb0LsRta8cCA5eANkhkLBk43Bl3wpt1zMFcX29QSBR/pykAPrCSWJmUzMkNDTEBsY8ssVuuDazvOtazTdsF2G/A2Npa3ahfZhRejwWsZWzRl+je5kCEtddC3xcNC+rEF5vJYiD/midYuSvNSG2j6degby5MGuWVyXIEaxOtEJEKFzAfHrTqLqThfv3CMn9r7QoC2xaijonLF5d2DRFmHjgB6MGzPHq2fFZHW03khLVyh7VrWvT8OAafQlCtwVOR3FXAvnjn8wJ4vpXlwxY9Xfjex8slhnFYTJ10npxx9mnYa3tZWhdfPSPuOs38RHjexWyJZMA3ZlPMV/E9rFGc9YAna2JQd2kNLC3YimnKS9LSpxch97X/fYvfcfW2PR1EOXUEuhFmq55gPzfA4bdS9hYcr3LBKBRcMc8JtJLWfrFHChnkCexTfP0uPLNcKwsEmFxY5dgfkb0ZGu4O9RPp1hj6e571FPmeiQkzKKvRz61MswOMrLXwRLKHgx2DnHv7UfsuHGn4JzXq4xP5+0sXIQAIqvGDVzNkGXVMTQay07qWnZSik7ssSM5BMKlFlImh1Atc1pT635vGWGK2PxnicO8trj0+CPJOMW7WaI8YWh3CYP1AIeh5S0YW/buLOyYoGpb8=
-  - secure: sSHh1n2aE0As8wPE2DhlsSMrdjIkcd1NjrXGrJqKGknx5GYqSo+85KcAbxvv587lIVtiJ8utMeqdZ0GxLVX0tj6KGw+InkuXBdsNnwD7aZMWoHhqEqy2WV945m6i2zAjhNY6VhOXYa0oMgiIPmYUWzzGS6U/F1Z2bFx5FpSK0h0aSjlVWqG/B13j2id3B4Igcl6nab9IM9c6CY8uYjvy6VgngsNn6Z6nNo0N8VZOaPmHnBH0BeGhxievycwTCWN54Ej6zfCE78Ta4MZRT/H9XCdDXGc8a4jMh1d6CCUjYQVhNArWWVQmU80d3T99lbZSsZQZuoJGFSIK8tgG+S7BAale0HJ9DMdmC9rob2hZGlcd2AEwoOxYIM5tSZh8CIIKP/GX9X29w9+kg1DW+ZHTkE9oHRLaC3F+Lsyk9DzKw5grTSqOgSEOZ2KEO5FDbqEMv0STLHG/PQaFQ1PVy0N+KkOEYq2P+SGObNUNcNdfd5j3xrgtMQQE4eyd/byZjP3M+cpndIiZ/I9NYHSPJXZqrUh5aGGmflrn/zZKOHu6+btlWZT05TrR8HGdUETBj+QKQcwVlgkJJwZPEDh6bhHqQ/aUpcGZSgTb0+MVK+wOV3jSc/+vSlyagITasmvaxgu9N0VpUUai3QmRf51BwERQ+FJvms3nWm50oWoPjSXc6iw=
-  - secure: mxe0IfAS+u1fWh2O7xJkY1dZVew6vPc5n9Z08hjL404Ej1pwB3JHYZgU2qmp3bkeuxZ5U4yD79ummaIPXoPRGzAiMvWkn5sC3rIn3GBrVPiKJDJjvgRFE36Oe6AvlUejT8ebyHtvXHzL3AjNeWEeV/SSAPE+0FmcNX2FsgHgpF07a6ugPdSzUvcq1UkAvOFoTecpnX+eKpkyO8ve7N7n6klNWX5n62+GPaVF+5x81Nr6hFpnW6fOGScv5ZifbY80zuYBUh6x4CDC39BU8V3bUSA3n71X9MqLYLjd9o+jPjphKk6NmY0+5BJmts28FWZ/wgzuGEf6gOVF9k1PFyME9XpKI+E+oge2TUbO4FqdHoSRyhtnvIx1FNs7sqDayndq5J+6OcOW14pMDAgbkWJwE1ShAq2BHeiA+48aY8kyWA+3L9WTRMlE4xpg/jwyRDmm1TYxLeIAP4fVUIPUTeK5y7QfHZk63wWBEUCM2H+1Zg/0x/+a/KYkFNNbF/NZl5uTcNUow3JKkaUzrCOQ4KeeSYbYboUIH6Y4lvZdaXTp6NJZMPmPjhxDKHfh2HUdHMuXOANJ98vlsRltYRQJzA32Z1KfAyePpWs0sfqNflsPYppaCpqMkPKh+zaNnsKqaLDL2l4vK7QVuWyigTTDgLOxuTuqs7MSO2NZZ/aScEjVs7s=
+    - ~/.m2/repository

@@ -8,11 +8,11 @@ before_install:
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
 
 install:
-  mvn --settings .setttings.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+  mvn --settings .settings.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 
 ## Build and release to maven central
 script:
-  mvn --settings .setttings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
+  mvn --settings .settings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
 
 ## Get the project version
 before_deploy:

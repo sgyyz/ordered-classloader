@@ -2,22 +2,20 @@ language: java
 jdk:
   - openjdk8
 
-## Export GPG details
-before_install:
-  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
-  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
-
+## Build and verify
 install:
   mvn --settings .settings.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 
-## Build and release to maven central
 script:
-  mvn --settings .settings.xml clean deploy -DskipTests=true -Dmaven.javadoc.skip=false -B -U
+  mvn --settings .settings.xml clean verify -DskipTests=true -Dmaven.javadoc.skip=false -Dgpg.skip -B -U
 
 ## Get the project version
 before_deploy:
   - mvn help:evaluate -N -Dexpression=project.version|grep -v '\['
   - export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\[')
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+  - mvn --settings .settings.xml clean deploy -DskipTests=false -Dmaven.javadoc.skip=false -B -U
 
 ## Create release in Github
 deploy:
